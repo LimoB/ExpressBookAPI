@@ -2,8 +2,8 @@ import express, { Application, Response } from "express";
 import dotenv from "dotenv";
 import { logger } from "./middleware/logger";
  import { userRouter } from "./users/user.route";
-// import { genreRouter } from "./genre/genre.route";
-// import { authorRouter } from "./author/author.route";
+import { genreRouter } from "./genre/genre.route";
+import { authorRouter } from "./author/author.route";
 import { bookRouter } from "./book/book.route";
  import { authRouter } from "./auth/auth.route";
 
@@ -25,8 +25,8 @@ app.get('/', (req, res: Response) => {
 
 // Import routes
  app.use('/api', userRouter);
-// app.use('/api', genreRouter);
-// app.use('/api', authorRouter);
+app.use('/api', genreRouter);
+app.use('/api', authorRouter);
 app.use('/api', bookRouter);
  app.use('/api', authRouter);
 

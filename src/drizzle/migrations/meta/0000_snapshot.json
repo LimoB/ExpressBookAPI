@@ -1,51 +1,109 @@
 {
-  "id": "5ed7c257-2592-4915-bdad-d11e99fd55df",
+  "id": "81464865-7541-4076-a8e4-355f8cb6e033",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.authorTable": {
-      "name": "authorTable",
+    "public.author": {
+      "name": "author",
       "schema": "",
       "columns": {
-        "authorId": {
-          "name": "authorId",
+        "author_id": {
+          "name": "author_id",
           "type": "serial",
           "primaryKey": true,
           "notNull": true
         },
-        "authorName": {
-          "name": "authorName",
+        "author_name": {
+          "name": "author_name",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "genre_id": {
+          "name": "genre_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "author_genre_id_genreTable_genreId_fk": {
+          "name": "author_genre_id_genreTable_genreId_fk",
+          "tableFrom": "author",
+          "tableTo": "genreTable",
+          "columnsFrom": [
+            "genre_id"
+          ],
+          "columnsTo": [
+            "genreId"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.authorGenreTable": {
+      "name": "authorGenreTable",
+      "schema": "",
+      "columns": {
+        "authorGenreId": {
+          "name": "authorGenreId",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "authorId": {
+          "name": "authorId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         },
         "genreId": {
           "name": "genreId",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "authorTable_genreId_genreTable_genreId_fk": {
-          "name": "authorTable_genreId_genreTable_genreId_fk",
-          "tableFrom": "authorTable",
+        "authorGenreTable_authorId_author_author_id_fk": {
+          "name": "authorGenreTable_authorId_author_author_id_fk",
+          "tableFrom": "authorGenreTable",
+          "tableTo": "author",
+          "columnsFrom": [
+            "authorId"
+          ],
+          "columnsTo": [
+            "author_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "authorGenreTable_genreId_genreTable_genreId_fk": {
+          "name": "authorGenreTable_genreId_genreTable_genreId_fk",
+          "tableFrom": "authorGenreTable",
           "tableTo": "genreTable",
           "columnsFrom": [
             "genreId"
@@ -178,15 +236,15 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "bookTable_authorId_authorTable_authorId_fk": {
-          "name": "bookTable_authorId_authorTable_authorId_fk",
+        "bookTable_authorId_author_author_id_fk": {
+          "name": "bookTable_authorId_author_author_id_fk",
           "tableFrom": "bookTable",
-          "tableTo": "authorTable",
+          "tableTo": "author",
           "columnsFrom": [
             "authorId"
           ],
           "columnsTo": [
-            "authorId"
+            "author_id"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"

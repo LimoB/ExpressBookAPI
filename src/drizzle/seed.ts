@@ -1,14 +1,30 @@
 import db from "./db";
 import {
   genreTable,
-  authorTable,
+  author,
   userTable,
   bookTable,
   bookOwnerTable,
 } from "./schema";
+import { sql } from "drizzle-orm"; // Needed for raw SQL
 
 async function seed() {
-  // Insert genres
+  // Step 1: Clean existing data
+  await db.execute(`DELETE FROM "bookOwnerTable"`);
+  await db.execute(`DELETE FROM "bookTable"`);
+  await db.execute(`DELETE FROM "authorGenreTable"`);
+  await db.execute(`DELETE FROM "author"`);           // Note: your table name is "author"
+  await db.execute(`DELETE FROM "genreTable"`);
+  await db.execute(`DELETE FROM "userTable"`);
+
+  // Optional: Reset primary key sequences (adjust sequence names to your DB)
+  await db.execute(sql`ALTER SEQUENCE "genreTable_genreId_seq" RESTART WITH 1`);
+  await db.execute(sql`ALTER SEQUENCE "author_author_id_seq" RESTART WITH 1`);
+  await db.execute(sql`ALTER SEQUENCE "userTable_userId_seq" RESTART WITH 1`);
+  await db.execute(sql`ALTER SEQUENCE "bookTable_bookId_seq" RESTART WITH 1`);
+  await db.execute(sql`ALTER SEQUENCE "bookOwnerTable_bookOwnerId_seq" RESTART WITH 1`);
+
+  // Step 2: Seed fresh data
   const [fiction] = await db
     .insert(genreTable)
     .values({ genreName: "Fiction", genreCode: "FIC" })
@@ -19,23 +35,26 @@ async function seed() {
     .values({ genreName: "Non-Fiction", genreCode: "NF" })
     .returning();
 
-  // Insert authors
+  const [mystery] = await db
+    .insert(genreTable)
+    .values({ genreName: "Mystery", genreCode: "MYS" })
+    .returning();
+
   const [janeAusten] = await db
-    .insert(authorTable)
+    .insert(author)
     .values({ authorName: "Jane Austen", genreId: fiction.genreId })
     .returning();
 
   const [georgeOrwell] = await db
-    .insert(authorTable)
+    .insert(author)
     .values({ authorName: "George Orwell", genreId: fiction.genreId })
     .returning();
 
-  const [malcolmGladwell] = await db
-    .insert(authorTable)
-    .values({ authorName: "Malcolm Gladwell", genreId: nonFiction.genreId })
+  const [agathaChristie] = await db
+    .insert(author)
+    .values({ authorName: "Agatha Christie", genreId: mystery.genreId })
     .returning();
 
-  // Insert users
   const [alice] = await db
     .insert(userTable)
     .values({
@@ -56,12 +75,21 @@ async function seed() {
     })
     .returning();
 
-  // Insert books
+  const [charlie] = await db
+    .insert(userTable)
+    .values({
+      fullName: "Charlie Brown",
+      email: "charlie@example.com",
+      password: "password3",
+      userType: "member",
+    })
+    .returning();
+
   const [pridePrejudice] = await db
     .insert(bookTable)
     .values({
-      title: "Pride and Prejudice",  // fixed property name here
-      description: "A classic novel about manners and matrimonial machinations.", // optional
+      title: "Pride and Prejudice",
+      description: "A classic novel about manners and matrimonial machinations.",
       isbn: "9780141439518",
       publicationYear: 1813,
       authorId: janeAusten.authorId,
@@ -71,35 +99,30 @@ async function seed() {
   const [nineteenEightyFour] = await db
     .insert(bookTable)
     .values({
-      title: "1984",  // fixed property name here
-      description: "A dystopian novel about totalitarian regime and surveillance.",
+      title: "1984",
+      description: "A dystopian novel about a totalitarian regime and surveillance.",
       isbn: "9780451524935",
       publicationYear: 1949,
       authorId: georgeOrwell.authorId,
     })
     .returning();
 
-  const [outliers] = await db
+  const [murderOrientExpress] = await db
     .insert(bookTable)
     .values({
-      title: "Outliers",  // fixed property name here
-      description: "Examines the factors contributing to high levels of success.",
-      isbn: "9780316017930",
-      publicationYear: 2008,
-      authorId: malcolmGladwell.authorId,
+      title: "Murder on the Orient Express",
+      description: "A detective novel featuring Hercule Poirot.",
+      isbn: "9780062693662",
+      publicationYear: 1934,
+      authorId: agathaChristie.authorId,
     })
     .returning();
 
-  // Insert book owners
-  await db.insert(bookOwnerTable).values({
-    bookId: pridePrejudice.bookId,
-    ownerId: alice.userId,
-  });
-
-  await db.insert(bookOwnerTable).values({
-    bookId: nineteenEightyFour.bookId,
-    ownerId: bob.userId,
-  });
+  await db.insert(bookOwnerTable).values([
+    { bookId: pridePrejudice.bookId, ownerId: alice.userId },
+    { bookId: nineteenEightyFour.bookId, ownerId: bob.userId },
+    { bookId: murderOrientExpress.bookId, ownerId: charlie.userId },
+  ]);
 
   console.log("✅ Book API Seeding complete!");
   process.exit(0);
