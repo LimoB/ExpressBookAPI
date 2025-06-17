@@ -2,16 +2,16 @@
   "name": "ExpressAPI-Intro",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "dev": "tsx watch ./src/server.ts",
     "build": "tsc",
+    "dev": "tsx watch ./src/server.ts",
+    "generate": "drizzle-kit generate",
+    "migrate": "tsx src/drizzle/migrate.ts",
+    "prepare": "pnpm generate && pnpm migrate",
+    "push": "pnpm generate && pnpm migrate",
+    "seed": "tsx src/drizzle/seed.ts",
     "start": "node ./dist/index.js",
-    "gen": "drizzle-kit generate",
-    "migrate": " tsx src/drizzle/migrate.ts",
-    "studio": "drizzle-kit studio",
-    "push": " drizzle-kit generate && tsx src/drizzle/migrate.ts",
-    "seed": "tsx src/drizzle/seed.ts"
+    "studio": "drizzle-kit studio"
   },
   "keywords": [],
   "author": "",
@@ -26,13 +26,15 @@
     "drizzle-orm": "^0.43.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.16.0"
+    "pg": "^8.16.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.2",
     "@types/node": "^22.15.21",
     "@types/pg": "^8.15.2",
+    "@types/uuid": "^10.0.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }

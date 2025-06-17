@@ -1,6 +1,18 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 
+// 🔒 Allowed roles in the system (extend as needed)
+type Role = "admin" | "member" | "author";
+
+// 📦 Token payload type
+type DecodedToken = {
+  userId: string;
+  email: string;
+  userType: Role;
+  exp?: number;
+};
+
+// 🛡 Extend Express request with `user`
 declare global {
   namespace Express {
     interface Request {
@@ -9,58 +21,59 @@ declare global {
   }
 }
 
-type DecodedToken = {
-  userId: string;
-  email: string;
-  userType: string;
-  exp?: number;
-};
-
-// Helper: Verify token
-export const verifyToken = async (token: string, secret: string) => {
+// 🔐 Helper: Verify JWT token and return payload
+export const verifyToken = async (
+  token: string,
+  secret: string
+): Promise<DecodedToken | null> => {
   try {
-    return jwt.verify(token, secret) as DecodedToken;
+    const decoded = jwt.verify(token, secret);
+    if (typeof decoded === "object" && "userType" in decoded) {
+      return decoded as DecodedToken;
+    }
+    return null;
   } catch {
     return null;
   }
 };
 
-// Helper: Async middleware wrapper to catch errors
+// ⚙️ Async wrapper to avoid repetitive try/catch
 const asyncHandler =
-  (fn: RequestHandler): RequestHandler =>
+  (fn: (req: Request, res: Response, next: NextFunction) => Promise<void>): RequestHandler =>
   (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+    fn(req, res, next).catch(next);
   };
 
-// Factory: Role-based middleware
-export const createRoleAuth = (requiredRole: string): RequestHandler =>
-  asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+// 🏁 Main Middleware Factory: Accepts one or more allowed roles
+export const createRoleAuth = (allowedRoles: Role[]): RequestHandler =>
+  asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const authHeader = req.header("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+
+    if (!authHeader?.startsWith("Bearer ")) {
       res.status(401).json({ error: "Authorization header missing or malformed" });
       return;
     }
 
     const token = authHeader.split(" ")[1];
     const decodedToken = await verifyToken(token, process.env.JWT_SECRET as string);
+
     if (!decodedToken) {
       res.status(401).json({ error: "Invalid or expired token" });
       return;
     }
 
-    const userType = decodedToken.userType;
-    if (
-      (requiredRole === "both" && (userType === "admin" || userType === "member")) ||
-      userType === requiredRole
-    ) {
-      req.user = decodedToken;
-      return next();
+    if (!allowedRoles.includes(decodedToken.userType)) {
+      res.status(403).json({ error: "Forbidden: insufficient privileges" });
+      return;
     }
 
-    res.status(403).json({ error: "Forbidden: insufficient privileges" });
+    req.user = decodedToken;
+    next();
   });
 
-// Ready-to-use middlewares
-export const adminRoleAuth = createRoleAuth("admin");
-export const userRoleAuth = createRoleAuth("member");
-export const bothRolesAuth = createRoleAuth("both");
+// ✅ Predefined Middleware Variants
+export const adminOnly = createRoleAuth(["admin"]);
+export const memberOnly = createRoleAuth(["member"]);
+export const authorOnly = createRoleAuth(["author"]);
+export const adminOrMember = createRoleAuth(["admin", "member"]);
+export const allRoles = createRoleAuth(["admin", "member", "author"]);

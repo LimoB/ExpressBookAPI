@@ -1,9 +1,67 @@
 {
-  "id": "81464865-7541-4076-a8e4-355f8cb6e033",
+  "id": "6c2f5623-743e-4674-bb46-6f99f31ea928",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.author_genre": {
+      "name": "author_genre",
+      "schema": "",
+      "columns": {
+        "author_genre_id": {
+          "name": "author_genre_id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "author_id": {
+          "name": "author_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "genre_id": {
+          "name": "genre_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "author_genre_author_id_author_author_id_fk": {
+          "name": "author_genre_author_id_author_author_id_fk",
+          "tableFrom": "author_genre",
+          "tableTo": "author",
+          "columnsFrom": [
+            "author_id"
+          ],
+          "columnsTo": [
+            "author_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "author_genre_genre_id_genre_genre_id_fk": {
+          "name": "author_genre_genre_id_genre_genre_id_fk",
+          "tableFrom": "author_genre",
+          "tableTo": "genre",
+          "columnsFrom": [
+            "genre_id"
+          ],
+          "columnsTo": [
+            "genre_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.author": {
       "name": "author",
       "schema": "",
@@ -43,15 +101,15 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "author_genre_id_genreTable_genreId_fk": {
-          "name": "author_genre_id_genreTable_genreId_fk",
+        "author_genre_id_genre_genre_id_fk": {
+          "name": "author_genre_id_genre_genre_id_fk",
           "tableFrom": "author",
-          "tableTo": "genreTable",
+          "tableTo": "genre",
           "columnsFrom": [
             "genre_id"
           ],
           "columnsTo": [
-            "genreId"
+            "genre_id"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
@@ -63,53 +121,53 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.authorGenreTable": {
-      "name": "authorGenreTable",
+    "public.book_owner": {
+      "name": "book_owner",
       "schema": "",
       "columns": {
-        "authorGenreId": {
-          "name": "authorGenreId",
+        "book_owner_id": {
+          "name": "book_owner_id",
           "type": "serial",
           "primaryKey": true,
           "notNull": true
         },
-        "authorId": {
-          "name": "authorId",
+        "book_id": {
+          "name": "book_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "genreId": {
-          "name": "genreId",
-          "type": "integer",
+        "owner_id": {
+          "name": "owner_id",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "authorGenreTable_authorId_author_author_id_fk": {
-          "name": "authorGenreTable_authorId_author_author_id_fk",
-          "tableFrom": "authorGenreTable",
-          "tableTo": "author",
+        "book_owner_book_id_book_book_id_fk": {
+          "name": "book_owner_book_id_book_book_id_fk",
+          "tableFrom": "book_owner",
+          "tableTo": "book",
           "columnsFrom": [
-            "authorId"
+            "book_id"
           ],
           "columnsTo": [
-            "author_id"
+            "book_id"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "authorGenreTable_genreId_genreTable_genreId_fk": {
-          "name": "authorGenreTable_genreId_genreTable_genreId_fk",
-          "tableFrom": "authorGenreTable",
-          "tableTo": "genreTable",
+        "book_owner_owner_id_user_user_id_fk": {
+          "name": "book_owner_owner_id_user_user_id_fk",
+          "tableFrom": "book_owner",
+          "tableTo": "user",
           "columnsFrom": [
-            "genreId"
+            "owner_id"
           ],
           "columnsTo": [
-            "genreId"
+            "user_id"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -121,70 +179,12 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.bookOwnerTable": {
-      "name": "bookOwnerTable",
+    "public.book": {
+      "name": "book",
       "schema": "",
       "columns": {
-        "bookOwnerId": {
-          "name": "bookOwnerId",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "bookId": {
-          "name": "bookId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "ownerId": {
-          "name": "ownerId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "bookOwnerTable_bookId_bookTable_bookId_fk": {
-          "name": "bookOwnerTable_bookId_bookTable_bookId_fk",
-          "tableFrom": "bookOwnerTable",
-          "tableTo": "bookTable",
-          "columnsFrom": [
-            "bookId"
-          ],
-          "columnsTo": [
-            "bookId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "bookOwnerTable_ownerId_userTable_userId_fk": {
-          "name": "bookOwnerTable_ownerId_userTable_userId_fk",
-          "tableFrom": "bookOwnerTable",
-          "tableTo": "userTable",
-          "columnsFrom": [
-            "ownerId"
-          ],
-          "columnsTo": [
-            "userId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.bookTable": {
-      "name": "bookTable",
-      "schema": "",
-      "columns": {
-        "bookId": {
-          "name": "bookId",
+        "book_id": {
+          "name": "book_id",
           "type": "serial",
           "primaryKey": true,
           "notNull": true
@@ -207,27 +207,27 @@
           "primaryKey": false,
           "notNull": false
         },
-        "publicationYear": {
-          "name": "publicationYear",
+        "publication_year": {
+          "name": "publication_year",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
-        "authorId": {
-          "name": "authorId",
+        "author_id": {
+          "name": "author_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
@@ -236,12 +236,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "bookTable_authorId_author_author_id_fk": {
-          "name": "bookTable_authorId_author_author_id_fk",
-          "tableFrom": "bookTable",
+        "book_author_id_author_author_id_fk": {
+          "name": "book_author_id_author_author_id_fk",
+          "tableFrom": "book",
           "tableTo": "author",
           "columnsFrom": [
-            "authorId"
+            "author_id"
           ],
           "columnsTo": [
             "author_id"
@@ -256,37 +256,37 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.genreTable": {
-      "name": "genreTable",
+    "public.genre": {
+      "name": "genre",
       "schema": "",
       "columns": {
-        "genreId": {
-          "name": "genreId",
+        "genre_id": {
+          "name": "genre_id",
           "type": "serial",
           "primaryKey": true,
           "notNull": true
         },
-        "genreName": {
-          "name": "genreName",
+        "genre_name": {
+          "name": "genre_name",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "genreCode": {
-          "name": "genreCode",
+        "genre_code": {
+          "name": "genre_code",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
@@ -301,18 +301,18 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.userTable": {
-      "name": "userTable",
+    "public.user": {
+      "name": "user",
       "schema": "",
       "columns": {
-        "userId": {
-          "name": "userId",
-          "type": "serial",
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
           "primaryKey": true,
           "notNull": true
         },
-        "fullName": {
-          "name": "fullName",
+        "full_name": {
+          "name": "full_name",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
@@ -329,23 +329,23 @@
           "primaryKey": false,
           "notNull": true
         },
-        "userType": {
-          "name": "userType",
-          "type": "userType",
+        "user_type": {
+          "name": "user_type",
+          "type": "user_type",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'member'"
         },
-        "createdAt": {
-          "name": "createdAt",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
@@ -355,19 +355,28 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "user_email_unique": {
+          "name": "user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     }
   },
   "enums": {
-    "public.userType": {
-      "name": "userType",
+    "public.user_type": {
+      "name": "user_type",
       "schema": "public",
       "values": [
+        "admin",
         "member",
-        "admin"
+        "author"
       ]
     }
   },

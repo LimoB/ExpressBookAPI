@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { adminRoleAuth, userRoleAuth } from "../middleware/bearAuth";
+import {
+  adminOnly,       // ✔️ Only admins
+  allRoles         // ✔️ All roles: admin, member, author
+} from "../middleware/bearAuth";
+
 import {
   getAllAuthors,
   getAuthorById,
@@ -11,22 +15,20 @@ import {
 
 export const authorRouter = Router();
 
-// GET all authors
-authorRouter.get("/authors", getAllAuthors);
+// GET all authors - accessible by all roles
+authorRouter.get("/authors", allRoles, getAllAuthors);
 
-// GET author by ID
-authorRouter.get("/authors/:id", getAuthorById);
+// GET author by ID - accessible by all roles
+authorRouter.get("/authors/:id", allRoles, getAuthorById);
 
-// POST create new author
-authorRouter.post("/authors", createAuthor);
+// POST create new author - admin only
+authorRouter.post("/authors", adminOnly, createAuthor);
 
-//post create author with book
-authorRouter.post("/author-with-book", adminRoleAuth, createAuthorWithBook);
+// POST create author with book - admin only
+authorRouter.post("/author-with-book", adminOnly, createAuthorWithBook);
 
+// PUT update author by ID - admin only
+authorRouter.put("/authors/:id", adminOnly, updateAuthor);
 
-
-// PUT update author by ID
-authorRouter.put("/authors/:id", updateAuthor);
-
-// DELETE author by ID
-authorRouter.delete("/authors/:id", deleteAuthor);
+// DELETE author by ID - admin only
+authorRouter.delete("/authors/:id", adminOnly, deleteAuthor);

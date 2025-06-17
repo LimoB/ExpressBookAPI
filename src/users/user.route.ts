@@ -1,26 +1,34 @@
 import { Router } from "express";
-import { createUser, deleteUser, getUserById, getUsers, updateUser } from "./user.controller";
-import { adminRoleAuth, bothRolesAuth, userRoleAuth } from "../middleware/bearAuth";
+import {
+  createUser,
+  deleteUser,
+  getUserById,
+  getUsers,
+  updateUser
+} from "./user.controller";
+
+import {
+  adminOnly,
+  memberOnly,
+  adminOrMember
+} from "../middleware/bearAuth"; // ⬅️ Make sure names match your middleware export
 
 export const userRouter = Router();
 
-// User routes definition
+// 🔐 Admin-only: Get all users
+userRouter.get("/users", adminOnly, getUsers);
 
+// 🔓 Public or authenticated: Get user by ID (optional: protect with auth)
+userRouter.get("/users/:id", getUserById);
 
-// Get all users
-userRouter.get('/users', adminRoleAuth, getUsers);
+// 🔓 Public: Create a new user
+userRouter.post("/users", createUser);
 
-// Get user by ID
-userRouter.get('/users/:id', getUserById);
+// 🔐 Member or Admin: Update a user (self or others, handled in controller)
+userRouter.put("/users/:id", adminOrMember, updateUser);
 
-// Create a new user
-userRouter.post('/users', createUser);
+// 🔐 Admin-only: Delete a user
+userRouter.delete("/users/:id", adminOnly, deleteUser);
 
-// Update an existing user
-userRouter.put('/users/:id',updateUser);
-
-// Update an existing user with partial fields
-// userRouter.patch('/users/:id', updateUserPartial);
-
-// Delete an existing user
-userRouter.delete('/users/:id',adminRoleAuth,deleteUser);
+// 🧩 Optional future support for PATCH
+// userRouter.patch("/users/:id", adminOrMember, updateUserPartial);

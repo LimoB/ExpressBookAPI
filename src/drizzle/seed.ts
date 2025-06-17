@@ -1,134 +1,135 @@
-import db from "./db";
+import db from "./db"; // make sure your Drizzle db client is imported properly
 import {
-  genreTable,
-  author,
   userTable,
+  genreTable,
+  authorTable,
+  authorGenreTable,
   bookTable,
-  bookOwnerTable,
+  bookOwnerTable
 } from "./schema";
-import { sql } from "drizzle-orm"; // Needed for raw SQL
 
 async function seed() {
-  // Step 1: Clean existing data
-  await db.execute(`DELETE FROM "bookOwnerTable"`);
-  await db.execute(`DELETE FROM "bookTable"`);
-  await db.execute(`DELETE FROM "authorGenreTable"`);
-  await db.execute(`DELETE FROM "author"`);           // Note: your table name is "author"
-  await db.execute(`DELETE FROM "genreTable"`);
-  await db.execute(`DELETE FROM "userTable"`);
+  try {
+    console.log("🧹 Clearing existing data...");
 
-  // Optional: Reset primary key sequences (adjust sequence names to your DB)
-  await db.execute(sql`ALTER SEQUENCE "genreTable_genreId_seq" RESTART WITH 1`);
-  await db.execute(sql`ALTER SEQUENCE "author_author_id_seq" RESTART WITH 1`);
-  await db.execute(sql`ALTER SEQUENCE "userTable_userId_seq" RESTART WITH 1`);
-  await db.execute(sql`ALTER SEQUENCE "bookTable_bookId_seq" RESTART WITH 1`);
-  await db.execute(sql`ALTER SEQUENCE "bookOwnerTable_bookOwnerId_seq" RESTART WITH 1`);
+    // Clear all data (respect foreign key constraints order)
+    await db.delete(bookOwnerTable);
+    await db.delete(bookTable);
+    await db.delete(authorGenreTable);
+    await db.delete(authorTable);
+    await db.delete(genreTable);
+    await db.delete(userTable);
 
-  // Step 2: Seed fresh data
-  const [fiction] = await db
-    .insert(genreTable)
-    .values({ genreName: "Fiction", genreCode: "FIC" })
-    .returning();
+    console.log("🌱 Inserting seed data...");
 
-  const [nonFiction] = await db
-    .insert(genreTable)
-    .values({ genreName: "Non-Fiction", genreCode: "NF" })
-    .returning();
+    // 🧑‍💼 Users
+    const [admin, member] = await db
+      .insert(userTable)
+      .values([
+        {
+          userId: "user-1",
+          fullName: "Admin User",
+          email: "admin@example.com",
+          password: "hashedpassword1", // hash your passwords in real apps
+          userType: "admin"
+        },
+        {
+          userId: "user-2",
+          fullName: "Regular Member",
+          email: "member@example.com",
+          password: "hashedpassword2",
+          userType: "member"
+        }
+      ])
+      .returning();
 
-  const [mystery] = await db
-    .insert(genreTable)
-    .values({ genreName: "Mystery", genreCode: "MYS" })
-    .returning();
+    // 🎵 Genres
+    const [fiction, science] = await db
+      .insert(genreTable)
+      .values([
+        { genreName: "Fiction", genreCode: "FIC" },
+        { genreName: "Science", genreCode: "SCI" }
+      ])
+      .returning();
 
-  const [janeAusten] = await db
-    .insert(author)
-    .values({ authorName: "Jane Austen", genreId: fiction.genreId })
-    .returning();
+    // ✍️ Authors
+    const [author1, author2] = await db
+      .insert(authorTable)
+      .values([
+        { authorName: "Jane Doe", genreId: fiction.genreId },
+        { authorName: "Albert Einstein", genreId: science.genreId }
+      ])
+      .returning();
 
-  const [georgeOrwell] = await db
-    .insert(author)
-    .values({ authorName: "George Orwell", genreId: fiction.genreId })
-    .returning();
+    // 🔗 Author-Genre Mapping
+    await db.insert(authorGenreTable).values([
+      { authorId: author1.authorId, genreId: fiction.genreId },
+      { authorId: author2.authorId, genreId: science.genreId }
+    ]);
 
-  const [agathaChristie] = await db
-    .insert(author)
-    .values({ authorName: "Agatha Christie", genreId: mystery.genreId })
-    .returning();
+    // 📚 Books
+    const [book1, book2, book3, book4, book5, book6] = await db
+      .insert(bookTable)
+      .values([
+        {
+          title: "A Tale of Two Codes",
+          description: "A fiction novel about programming.",
+          isbn: "111-222-333",
+          publicationYear: 2021,
+          authorId: author1.authorId
+        },
+        {
+          title: "Relativity for Beginners",
+          description: "Introductory guide to Einstein's theory.",
+          isbn: "444-555-666",
+          publicationYear: 2020,
+          authorId: author2.authorId
+        },
+        {
+          title: "Code & Prejudice",
+          description: "A classic love story in a digital world.",
+          isbn: "777-888-999",
+          publicationYear: 2022,
+          authorId: author1.authorId
+        },
+        {
+          title: "Quantum Quirks",
+          description: "Exploring the quirks of quantum mechanics.",
+          isbn: "000-111-222",
+          publicationYear: 2019,
+          authorId: author2.authorId
+        },
+        {
+          title: "The Algorithmic Heart",
+          description: "Romance in the age of artificial intelligence.",
+          isbn: "333-444-555",
+          publicationYear: 2023,
+          authorId: author1.authorId
+        },
+        {
+          title: "The Cosmic Clock",
+          description: "Understanding time and space.",
+          isbn: "666-777-888",
+          publicationYear: 2018,
+          authorId: author2.authorId
+        }
+      ])
+      .returning();
 
-  const [alice] = await db
-    .insert(userTable)
-    .values({
-      fullName: "Alice Smith",
-      email: "alice@example.com",
-      password: "password1",
-      userType: "admin",
-    })
-    .returning();
+    // 👤 Book Ownership
+    await db.insert(bookOwnerTable).values([
+      { bookId: book1.bookId, ownerId: admin.userId },
+      { bookId: book2.bookId, ownerId: member.userId },
+      { bookId: book3.bookId, ownerId: member.userId },
+      { bookId: book4.bookId, ownerId: admin.userId },
+      { bookId: book5.bookId, ownerId: admin.userId },
+      { bookId: book6.bookId, ownerId: member.userId }
+    ]);
 
-  const [bob] = await db
-    .insert(userTable)
-    .values({
-      fullName: "Bob Jones",
-      email: "bob@example.com",
-      password: "password2",
-      userType: "member",
-    })
-    .returning();
-
-  const [charlie] = await db
-    .insert(userTable)
-    .values({
-      fullName: "Charlie Brown",
-      email: "charlie@example.com",
-      password: "password3",
-      userType: "member",
-    })
-    .returning();
-
-  const [pridePrejudice] = await db
-    .insert(bookTable)
-    .values({
-      title: "Pride and Prejudice",
-      description: "A classic novel about manners and matrimonial machinations.",
-      isbn: "9780141439518",
-      publicationYear: 1813,
-      authorId: janeAusten.authorId,
-    })
-    .returning();
-
-  const [nineteenEightyFour] = await db
-    .insert(bookTable)
-    .values({
-      title: "1984",
-      description: "A dystopian novel about a totalitarian regime and surveillance.",
-      isbn: "9780451524935",
-      publicationYear: 1949,
-      authorId: georgeOrwell.authorId,
-    })
-    .returning();
-
-  const [murderOrientExpress] = await db
-    .insert(bookTable)
-    .values({
-      title: "Murder on the Orient Express",
-      description: "A detective novel featuring Hercule Poirot.",
-      isbn: "9780062693662",
-      publicationYear: 1934,
-      authorId: agathaChristie.authorId,
-    })
-    .returning();
-
-  await db.insert(bookOwnerTable).values([
-    { bookId: pridePrejudice.bookId, ownerId: alice.userId },
-    { bookId: nineteenEightyFour.bookId, ownerId: bob.userId },
-    { bookId: murderOrientExpress.bookId, ownerId: charlie.userId },
-  ]);
-
-  console.log("✅ Book API Seeding complete!");
-  process.exit(0);
+    console.log("✅ Seed completed successfully");
+  } catch (err) {
+    console.error("❌ Seed failed", err);
+  }
 }
 
-seed().catch((e) => {
-  console.error("❌ Book API Seeding failed:", e);
-  process.exit(1);
-});
+seed();
