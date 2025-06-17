@@ -20,6 +20,7 @@
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.9",
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "drizzle-kit": "^0.31.1",
     "drizzle-orm": "^0.43.1",
