@@ -1,69 +1,74 @@
-import { relations } from "drizzle-orm";
 import {
   pgTable,
   text,
-  timestamp,
   varchar,
-  pgEnum,
   integer,
-  serial
+  serial,
+  timestamp,
+  pgEnum
 } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
-// 🔷 ENUM: Roles from JWT
+// 🔷 ENUM: User roles
 export const roleEnum = pgEnum("user_type", ["admin", "member", "author"]);
 
-// 🔹 User Table (Updated for JWT)
+// 🧑‍💼 User Table
 export const userTable = pgTable("user", {
-  userId: text("user_id").primaryKey(), // Matches JWT `userId` (string UUID preferred)
-  fullName: varchar("full_name"),
-  email: varchar("email").notNull().unique(), // JWT email
-  password: varchar("password").notNull(),
-  userType: roleEnum("user_type").default("member").notNull(), // JWT role
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
+  userId: text("user_id").primaryKey(), // UUID from JWT
+  fullName: varchar("full_name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 100 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  userType: roleEnum("user_type").notNull().default("member"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 
-// 🆕 Other Tables (unchanged from earlier, with FK to new `user.userId`)
+// 🎭 Genre Table
 export const genreTable = pgTable("genre", {
   genreId: serial("genre_id").primaryKey(),
-  genreName: text("genre_name"),
-  genreCode: text("genre_code"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
+  genreName: varchar("genre_name", { length: 100 }).notNull(),
+  genreCode: varchar("genre_code", { length: 50 }).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 
+// ✍️ Author Table
 export const authorTable = pgTable("author", {
   authorId: serial("author_id").primaryKey(),
-  authorName: text("author_name"),
-  genreId: integer("genre_id").references(() => genreTable.genreId),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  authorName: varchar("author_name", { length: 100 }).notNull(),
+  genreId: integer("genre_id").references(() => genreTable.genreId).notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 
+// 🔗 Author-Genre Bridge Table
 export const authorGenreTable = pgTable("author_genre", {
   authorGenreId: serial("author_genre_id").primaryKey(),
   authorId: integer("author_id").notNull().references(() => authorTable.authorId, { onDelete: "cascade" }),
   genreId: integer("genre_id").notNull().references(() => genreTable.genreId, { onDelete: "cascade" })
 });
 
+// 📚 Book Table
 export const bookTable = pgTable("book", {
   bookId: serial("book_id").primaryKey(),
-  title: text("title").notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
   description: text("description"),
-  isbn: text("isbn"),
+  isbn: varchar("isbn", { length: 20 }),
   publicationYear: integer("publication_year"),
   authorId: integer("author_id").notNull().references(() => authorTable.authorId, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 
+// 🤝 Book Owner Table
 export const bookOwnerTable = pgTable("book_owner", {
   bookOwnerId: serial("book_owner_id").primaryKey(),
   bookId: integer("book_id").notNull().references(() => bookTable.bookId, { onDelete: "cascade" }),
-  ownerId: text("owner_id").notNull().references(() => userTable.userId, { onDelete: "cascade" }) // updated FK
+  ownerId: text("owner_id").notNull().references(() => userTable.userId, { onDelete: "cascade" })
 });
 
-// 🔹 Inferred Types (unchanged except for userId type)
+
+
 export type TUserInsert = typeof userTable.$inferInsert;
 export type TUserSelect = typeof userTable.$inferSelect;
 
@@ -82,7 +87,7 @@ export type TBookSelect = typeof bookTable.$inferSelect;
 export type TBookOwnerInsert = typeof bookOwnerTable.$inferInsert;
 export type TBookOwnerSelect = typeof bookOwnerTable.$inferSelect;
 
-// 🔹 Relations (updated for string FK in bookOwner)
+
 export const genreAuthorsRelation = relations(genreTable, ({ many }) => ({
   authors: many(authorTable),
   authorGenres: many(authorGenreTable)

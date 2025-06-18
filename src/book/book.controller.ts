@@ -6,6 +6,9 @@ import {
     getBooksServices,
     updateBookServices
 } from "./book.service";
+import { eq } from "drizzle-orm";
+import db from "../drizzle/db";
+import { authorTable } from "../drizzle/schema";
 
 export const getBooks = async (req: Request, res: Response) => {
     try {
@@ -38,29 +41,44 @@ export const getBookById = async (req: Request, res: Response) => {
     }
 };
 
-export const createBook = async (req: Request, res: Response) => {
-    const { title, description, authorId, isbn, publicationYear } = req.body;
-    if (!title || !authorId) {
-        res.status(400).json({ error: "Book title and author ID are required" });
-        return;
+
+export const createBook = async (req: Request, res: Response): Promise<void> => {
+  const { title, description, authorId, isbn, publicationYear } = req.body;
+
+  if (!title || !authorId) {
+    res.status(400).json({ error: "Book title and author ID are required" });
+    return;
+  }
+
+  try {
+    // 🔍 Check if author exists
+    const existingAuthor = await db.query.authorTable.findFirst({
+      where: eq(authorTable.authorId, authorId),
+    });
+
+    if (!existingAuthor) {
+      res.status(400).json({ error: "Author not found. Please select a valid author." });
+      return;
     }
-    try {
-        const newBook = await createBookServices({
-            title,
-            description,
-            authorId,
-            isbn,
-            publicationYear,
-        });
-        if (!newBook) {
-            res.status(500).json({ message: "Failed to create book" });
-        } else {
-            res.status(201).json(newBook);
-        }
-    } catch (error: any) {
-        res.status(500).json({ error: error.message || "Failed to create book" });
-    }
+
+    // 📚 Create the book
+    const newBook = await createBookServices({
+      title,
+      description,
+      authorId,
+      isbn,
+      publicationYear,
+    });
+
+    res.status(201).json(newBook);
+  } catch (error) {
+    console.error("❌ Create Book Error:", error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : "Failed to create book"
+    });
+  }
 };
+
 
 export const updateBook = async (req: Request, res: Response) => {
     const bookId = parseInt(req.params.id);
